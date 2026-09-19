@@ -1,10 +1,12 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Chessboard } from 'react-chessboard'
 import { useChessGame } from './hooks/useChessGame'
 import { GameControls } from './components/GameControls'
 import { EvalBar } from './components/EvalBar'
 import { PromotionModal } from './components/PromotionModal'
 import { AnalysisPanel } from './components/AnalysisPanel'
+import { SettingsModal } from './components/SettingsModal'
+import type { UiTheme, BoardColor, PieceTheme } from './components/SettingsModal'
 import './App.css'
 
 function App() {
@@ -33,6 +35,17 @@ function App() {
   const [optionSquares, setOptionSquares] = useState<Record<string, React.CSSProperties>>({})
   const [moveFrom, setMoveFrom] = useState<string | null>(null)
   const [reviewIndex, setReviewIndex] = useState<number | null>(null)
+
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false)
+  const [uiTheme, setUiTheme] = useState<UiTheme>(() => (localStorage.getItem('uiTheme') as UiTheme) || 'dark')
+  const [boardColor, setBoardColor] = useState<BoardColor>(() => (localStorage.getItem('boardColor') as BoardColor) || 'blue')
+  const [pieceTheme, setPieceTheme] = useState<PieceTheme>(() => (localStorage.getItem('pieceTheme') as PieceTheme) || 'standard')
+
+  useEffect(() => {
+    localStorage.setItem('uiTheme', uiTheme)
+    localStorage.setItem('boardColor', boardColor)
+    localStorage.setItem('pieceTheme', pieceTheme)
+  }, [uiTheme, boardColor, pieceTheme])
 
   const boardDisabled = isThinking || gameStatus !== 'playing' || reviewIndex !== null
 
@@ -94,8 +107,30 @@ function App() {
     }
   }
 
+  const getBoardStyles = () => {
+    if (boardColor === 'green') return { darkSquareStyle: { backgroundColor: '#779556' }, lightSquareStyle: { backgroundColor: '#ebecd0' } }
+    if (boardColor === 'brown') return { darkSquareStyle: { backgroundColor: '#b58863' }, lightSquareStyle: { backgroundColor: '#f0d9b5' } }
+    return { darkSquareStyle: { backgroundColor: '#5b8bdf' }, lightSquareStyle: { backgroundColor: '#eef0f8' } }
+  }
+
+  const getCustomPieces = () => {
+    if (pieceTheme === 'standard') return undefined
+    const pieces = ['wP', 'wN', 'wB', 'wR', 'wQ', 'wK', 'bP', 'bN', 'bB', 'bR', 'bQ', 'bK']
+    const pieceMap: Record<string, any> = {}
+    pieces.forEach(p => {
+      pieceMap[p] = ({ squareWidth }: any) => (
+        <img 
+          src={`/pieces/${pieceTheme}/${p}.svg`} 
+          alt={p} 
+          style={{ width: squareWidth, height: squareWidth }} 
+        />
+      )
+    })
+    return pieceMap
+  }
+
   return (
-    <div className="app">
+    <div className={`app ${uiTheme === 'light' ? 'theme-light' : ''}`}>
       {/* Header */}
       <header className="app-header">
         <div className="logo">
@@ -103,6 +138,13 @@ function App() {
           <span className="logo-text">HenChess</span>
         </div>
         <p className="header-subtitle">Hybrid AI Sparring</p>
+        <button 
+          onClick={() => setIsSettingsOpen(true)}
+          style={{ position: 'absolute', top: '24px', right: '32px', background: 'transparent', border: 'none', fontSize: '1.6rem', cursor: 'pointer', filter: 'grayscale(1)', opacity: 0.8 }}
+          title="Settings"
+        >
+          ⚙️
+        </button>
       </header>
 
       {/* Main layout */}
@@ -150,8 +192,8 @@ function App() {
                 boxShadow: '0 4px 24px rgba(0,0,0,0.4)',
               },
               squareStyles: optionSquares,
-              darkSquareStyle: { backgroundColor: '#5b8bdf' },
-              lightSquareStyle: { backgroundColor: '#eef0f8' }
+              ...getBoardStyles(),
+              pieces: getCustomPieces()
             }}
           />
         </div>
@@ -194,6 +236,14 @@ function App() {
           <span>⚠ {error}</span>
         </div>
       )}
+
+      <SettingsModal 
+        isOpen={isSettingsOpen} 
+        onClose={() => setIsSettingsOpen(false)}
+        uiTheme={uiTheme} setUiTheme={setUiTheme}
+        boardColor={boardColor} setBoardColor={setBoardColor}
+        pieceTheme={pieceTheme} setPieceTheme={setPieceTheme}
+      />
     </div>
   )
 }
