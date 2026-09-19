@@ -1,0 +1,47 @@
+# Node.js / Vite (Frontend)
+frontend/node_modules/
+frontend/dist/
+frontend/dist-ssr/
+frontend/.eslintcache
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+
+# Python / FastAPI (Backend)
+backend/venv/
+__pycache__/
+*.py[cod]
+backend/.pytest_cache/
+backend/.coverage
+backend/htmlcov/
+backend/instance/
+backend/.webassets-cache
+backend/maia3_src/
+backend/.pytest_cache/
+backend/.coverage
+backend/htmlcov/
+backend/instance/
+backend/.webassets-cache
+
+# OS Files (Mac)
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+
+# IDE & Editor
+.vscode/*
+!.vscode/settings.json
+.idea/
+*.swp
+*.swo
+
+# Environment Variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Temp Files
+*.log

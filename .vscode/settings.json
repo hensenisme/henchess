@@ -1,0 +1,6 @@
+{
+  "python.defaultInterpreterPath": "/Users/hensen/Development/henchess/backend/venv/bin/python",
+  "python.analysis.extraPaths": [
+    "/Users/hensen/Development/henchess/backend"
+  ]
+}
