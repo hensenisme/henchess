@@ -2,7 +2,20 @@ import { useState, useCallback } from 'react'
 import { Chess } from 'chess.js'
 import type { PieceSymbol, Square } from 'chess.js'
 
-const API_BASE = 'http://localhost:8000'
+const API_BASE = `http://${window.location.hostname}:8000`
+
+const sounds = {
+  move: new Audio('/sounds/move.mp3'),
+  capture: new Audio('/sounds/capture.mp3'),
+  check: new Audio('/sounds/check.mp3'),
+  gameEnd: new Audio('/sounds/game-end.mp3'),
+}
+
+function playSound(type: keyof typeof sounds) {
+  const audio = sounds[type]
+  audio.currentTime = 0
+  audio.play().catch(() => {})
+}
 
 export type EngineMode = 'stockfish' | 'maia' | 'hybrid'
 
@@ -89,6 +102,18 @@ export function useChessGame() {
     return 'stalemate'
   }
 
+  const playMoveSound = useCallback((gameInst: Chess, moveResult: any) => {
+    if (gameInst.isCheckmate() || gameInst.isStalemate() || gameInst.isDraw()) {
+      playSound('gameEnd')
+    } else if (gameInst.isCheck()) {
+      playSound('check')
+    } else if (moveResult && moveResult.flags && (moveResult.flags.includes('c') || moveResult.flags.includes('e'))) {
+      playSound('capture')
+    } else {
+      playSound('move')
+    }
+  }, [])
+
   // ── AI Move Request ───────────────────────────────────────────────────────
 
   const requestAIMove = useCallback(async (currentGame: Chess, mode: EngineMode, targetElo: number) => {
@@ -126,7 +151,8 @@ export function useChessGame() {
       // Apply AI move
       const newGame = new Chess()
       newGame.loadPgn(currentGame.pgn())
-      newGame.move(data.move)
+      const moveRes = newGame.move(data.move)
+      playMoveSound(newGame, moveRes)
 
       const localOver = checkLocalGameOver(newGame)
 
@@ -208,6 +234,7 @@ export function useChessGame() {
       }
 
       if (!result) return false
+      playMoveSound(newGame, result)
 
       // Check if player's move ended the game
       const localOver = checkLocalGameOver(newGame)
