@@ -1,13 +1,23 @@
 import type { MoveAnalysis } from '../hooks/useChessGame'
+import { EvalGraph } from './EvalGraph'
 
 interface AnalysisPanelProps {
   analysis: MoveAnalysis[] | null
   isAnalyzing: boolean
   onRequestAnalysis: () => void
   gameStatus: string
+  reviewIndex: number | null
+  setReviewIndex: (index: number | null) => void
 }
 
-export function AnalysisPanel({ analysis, isAnalyzing, onRequestAnalysis, gameStatus }: AnalysisPanelProps) {
+export function AnalysisPanel({ 
+  analysis, 
+  isAnalyzing, 
+  onRequestAnalysis, 
+  gameStatus,
+  reviewIndex,
+  setReviewIndex
+}: AnalysisPanelProps) {
   if (gameStatus === 'playing') return null
 
   return (
@@ -51,13 +61,45 @@ export function AnalysisPanel({ analysis, isAnalyzing, onRequestAnalysis, gameSt
             </div>
           </div>
 
+          <EvalGraph analysis={analysis} />
+
+          {reviewIndex !== null && (
+            <div className="review-controls" style={{ display: 'flex', gap: '8px', marginBottom: '16px', justifyContent: 'center' }}>
+              <button 
+                className="btn secondary" 
+                disabled={reviewIndex <= 0}
+                onClick={() => setReviewIndex(reviewIndex - 1)}
+              >
+                ◀ Prev
+              </button>
+              <button 
+                className="btn primary" 
+                onClick={() => setReviewIndex(null)}
+              >
+                Exit Review
+              </button>
+              <button 
+                className="btn secondary" 
+                disabled={reviewIndex >= analysis.length - 1}
+                onClick={() => setReviewIndex(reviewIndex + 1)}
+              >
+                Next ▶
+              </button>
+            </div>
+          )}
+
           <div className="moves-list">
             {analysis.map((move, idx) => {
               const moveNum = Math.floor(idx / 2) + 1
               const isWhite = idx % 2 === 0
               
               return (
-                <div key={idx} className={`move-analysis-row ${move.classification.label.toLowerCase()}`}>
+                <div 
+                  key={idx} 
+                  className={`move-analysis-row ${move.classification.label.toLowerCase()} ${reviewIndex === idx ? 'active-review' : ''}`}
+                  onClick={() => setReviewIndex(idx)}
+                  style={{ cursor: 'pointer', border: reviewIndex === idx ? '2px solid #fff' : 'none' }}
+                >
                   <div className="move-number">{isWhite ? `${moveNum}.` : ''}</div>
                   <div className="move-san">{move.san}</div>
                   <div className="move-eval">

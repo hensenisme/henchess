@@ -32,8 +32,9 @@ function App() {
 
   const [optionSquares, setOptionSquares] = useState<Record<string, React.CSSProperties>>({})
   const [moveFrom, setMoveFrom] = useState<string | null>(null)
+  const [reviewIndex, setReviewIndex] = useState<number | null>(null)
 
-  const boardDisabled = isThinking || gameStatus !== 'playing'
+  const boardDisabled = isThinking || gameStatus !== 'playing' || reviewIndex !== null
 
   function getMoveOptions(square: string) {
     const moves = game.moves({
@@ -112,7 +113,7 @@ function App() {
         {/* Board */}
         <div className="board-wrapper">
           {/* Game Over Overlay */}
-          {gameStatus !== 'playing' && (
+          {gameStatus !== 'playing' && reviewIndex === null && (
             <div className="game-over-overlay">
               <div className="game-over-card">
                 <div className="game-over-icon">
@@ -138,7 +139,7 @@ function App() {
 
           <Chessboard
             options={{
-              position: game.fen(),
+              position: reviewIndex !== null && analysis ? analysis[reviewIndex].fen_after : game.fen(),
               onPieceDrop: ({ sourceSquare, targetSquare }) => handlePieceDrop(sourceSquare, targetSquare ?? ''),
               onPieceDrag: ({ square }) => getMoveOptions(square ?? ''),
               onSquareClick: ({ square }) => handleSquareClick(square ?? ''),
@@ -181,6 +182,8 @@ function App() {
             isAnalyzing={isAnalyzing}
             onRequestAnalysis={requestAnalysis}
             gameStatus={gameStatus}
+            reviewIndex={reviewIndex}
+            setReviewIndex={setReviewIndex}
           />
         </div>
       </main>
